@@ -2,6 +2,35 @@
 
 [ext_resource type="Texture2D" uid="uid://cnxdg17u5rx8x" path="res://Spritesheet/Ranger- Base.png" id="1_p72e7"]
 
+[sub_resource type="Shader" id="Shader_body_split"]
+code = "shader_type canvas_item;
+
+// Splits the 48x48 frame at hip_y (sprite-local px): the legs half stays
+// planted while the torso half pivots around the hip.
+uniform float hip_y : hint_range(-24.0, 24.0) = 20.0;
+uniform float overlap : hint_range(0.0, 8.0) = 3.0;
+uniform bool keep_upper = false;
+
+varying vec2 sprite_pos;
+
+void vertex() {
+	sprite_pos = VERTEX;
+}
+
+void fragment() {
+	float edge = keep_upper ? hip_y + overlap : hip_y;
+	if ((sprite_pos.y <= edge) != keep_upper) {
+		COLOR.a = 0.0;
+	}
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_legs"]
+shader = SubResource("Shader_body_split")
+shader_parameter/hip_y = 20.0
+shader_parameter/overlap = 3.0
+shader_parameter/keep_upper = false
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_p72e7"]
 atlas = ExtResource("1_p72e7")
 region = Rect2(0, 144, 48, 48)
@@ -294,9 +323,16 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_vikta"]
 radius = 6.0827627
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_torso"]
+shader = SubResource("Shader_body_split")
+shader_parameter/hip_y = 20.0
+shader_parameter/overlap = 3.0
+shader_parameter/keep_upper = true
+
 [node name="CharacterBody2D" type="CharacterBody2D" unique_id=1441517839]
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=926885819]
+material = SubResource("ShaderMaterial_legs")
 position = Vector2(9.749997, -24.249998)
 scale = Vector2(1.2604165, 1.03125)
 sprite_frames = SubResource("SpriteFrames_b5f2x")
@@ -308,5 +344,16 @@ position = Vector2(5, -6)
 shape = SubResource("CircleShape2D_vikta")
 
 [node name="Muzzle" type="Marker2D" parent="." unique_id=2053585741]
-position = Vector2(15, -16)
+position = Vector2(29.916661, -17.031248)
 gizmo_extents = 33.3
+
+[node name="UpperPivot" type="Node2D" parent="." unique_id=1898465060]
+position = Vector2(4.708331, -3.624998)
+
+[node name="Torso" type="AnimatedSprite2D" parent="UpperPivot" unique_id=785179355]
+material = SubResource("ShaderMaterial_torso")
+position = Vector2(5.041666, -20.624998)
+scale = Vector2(1.2604165, 1.03125)
+sprite_frames = SubResource("SpriteFrames_b5f2x")
+animation = &"attack"
+frame_progress = 0.30600873
