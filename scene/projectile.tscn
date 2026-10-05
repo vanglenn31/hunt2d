@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://ot5fx3616yd2"]
+
+[ext_resource type="Texture2D" uid="uid://b5ke4baa1vvs3" path="res://tiles/arrow_01.png" id="1_q8hwd"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_h10kl"]
+
+[sub_resource type="GDScript" id="GDScript_b5f2x"]
+script/source = "extends RigidBody2D
+
+var stuck := false
+
+
+func _ready() -> void:
+	linear_damp_mode = RigidBody2D.DAMP_MODE_REPLACE
+	linear_damp = 0.0          # no air drag, so the preview matches the real flight
+	contact_monitor = true
+	max_contacts_reported = 1
+	body_entered.connect(_on_body_entered)
+	get_tree().create_timer(8.0).timeout.connect(queue_free)
+
+
+# Point the arrow along its velocity while flying
+func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
+	if stuck:
+		return
+	if state.linear_velocity.length() > 1.0:
+		state.transform = Transform2D(state.linear_velocity.angle(), state.transform.origin)
+	state.angular_velocity = 0.0
+
+
+# Stick into whatever we hit
+func _on_body_entered(_body: Node) -> void:
+	stuck = true
+	set_deferred(\"freeze\", true)
+"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_vikta"]
+size = Vector2(1.4142139, 33.94113)
+
+[node name="projectile" type="RigidBody2D" unique_id=1767375344]
+rotation = -6.2831855
+physics_material_override = SubResource("PhysicsMaterial_h10kl")
+script = SubResource("GDScript_b5f2x")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1023964945]
+position = Vector2(9.536743e-07, -9.536743e-07)
+rotation = 0.7853982
+scale = Vector2(0.60962474, 0.60962474)
+texture = ExtResource("1_q8hwd")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=770224931]
+position = Vector2(0.99999994, 1.7881393e-07)
+rotation = 1.5707964
+scale = Vector2(0.9999999, 0.9999999)
+shape = SubResource("RectangleShape2D_vikta")
