@@ -7,31 +7,101 @@
 [sub_resource type="GDScript" id="GDScript_b5f2x"]
 script/source = "extends RigidBody2D
 
+const LABEL_HOLD_TIME := 5.0   # seconds the text stays fully visible
+const LABEL_FADE_TIME := 1.0   # seconds it takes to fade out
+const LABEL_RISE_PX := 20.0    # how far it floats up (0.0 = stays put)
+
 var stuck := false
+var launch_velocity := Vector2.ZERO   # optional: the archer may set this; otherwise captured automatically
+var launch_captured := false
+var last_velocity := Vector2.ZERO     # velocity from the frame BEFORE the collision
+var start_pos := Vector2.ZERO
+var g: float = ProjectSettings.get_setting(\"physics/2d/default_gravity\")
 
 
 func _ready() -> void:
 	linear_damp_mode = RigidBody2D.DAMP_MODE_REPLACE
-	linear_damp = 0.0          # no air drag, so the preview matches the real flight
+	linear_damp = 0.0
 	contact_monitor = true
 	max_contacts_reported = 1
 	body_entered.connect(_on_body_entered)
 	get_tree().create_timer(8.0).timeout.connect(queue_free)
+	start_pos = global_position
+
+	# If the archer already assigned launch_velocity, don't overwrite it later.
+	if launch_velocity != Vector2.ZERO:
+		launch_captured = true
 
 
-# Point the arrow along its velocity while flying
 func _integrate_forces(state: PhysicsDirectBodyState2D) -> void:
 	if stuck:
 		return
+
+	# Capture the launch velocity on the first frame the arrow is actually moving.
+	if not launch_captured and state.linear_velocity.length() > 1.0:
+		launch_velocity = state.linear_velocity
+		launch_captured = true
+
+	# Remember velocity before collision resolution changes it (used for impact speed).
+	last_velocity = state.linear_velocity
+
+	# Point the arrow along its direction of travel.
 	if state.linear_velocity.length() > 1.0:
 		state.transform = Transform2D(state.linear_velocity.angle(), state.transform.origin)
 	state.angular_velocity = 0.0
 
 
-# Stick into whatever we hit
-func _on_body_entered(_body: Node) -> void:
+func _on_body_entered(body: Node) -> void:
+	if stuck:
+		return
 	stuck = true
+
+	show_hit_stats(body)
+
+	if body.has_method(\"take_damage\"):
+		body.take_damage(1)
+		queue_free()          # arrow disappears on enemy hit
+		return
+
+	# hit the world: stick into it
 	set_deferred(\"freeze\", true)
+
+
+# ---------- HIT READOUT ----------
+
+func show_hit_stats(body: Node) -> void:
+	var v := launch_velocity
+	var speed := v.length()
+	var angle_deg := rad_to_deg(atan2(-v.y, absf(v.x)))
+	var impulse := speed * mass
+	var g_eff := g * gravity_scale            # respects the arrow's gravity_scale
+	var vy := -v.y
+	var max_height := (vy * vy) / (2.0 * g_eff) if (vy > 0.0 and g_eff > 0.0) else 0.0
+	var range_px := absf(speed * speed * sin(2.0 * deg_to_rad(angle_deg)) / g_eff) if g_eff > 0.0 else 0.0
+	var impact_speed := last_velocity.length()
+	var travelled := start_pos.distance_to(global_position)
+	var target := \"Enemy\" if body.has_method(\"take_damage\") else \"Terrain\"
+
+	var text := \"Hit: %s\\nDistance: %.0f px\\nAngle: %.1f°\\nLaunch speed: %.0f px/s\\nImpact speed: %.0f px/s\\nForce (impulse): %.0f N·s\\nMax height: %.0f px\\nRange: %.0f px\" % [
+		target, travelled, angle_deg, speed, impact_speed, impulse, max_height, range_px]
+
+	var label := Label.new()
+	label.text = text
+	label.z_index = 100
+	label.add_theme_font_size_override(\"font_size\", 10)
+	label.add_theme_color_override(\"font_color\", Color.WHITE)
+	label.add_theme_color_override(\"font_outline_color\", Color.BLACK)
+	label.add_theme_constant_override(\"outline_size\", 4)
+	get_tree().current_scene.add_child(label)
+	label.global_position = global_position + Vector2(-40, -100)
+
+	# float up a little, hold, then fade out and delete itself
+	var total_time := LABEL_HOLD_TIME + LABEL_FADE_TIME
+	label.create_tween().tween_property(label, \"position:y\", label.position.y - LABEL_RISE_PX, total_time)
+	var fade := label.create_tween()
+	fade.tween_interval(LABEL_HOLD_TIME)
+	fade.tween_property(label, \"modulate:a\", 0.0, LABEL_FADE_TIME)
+	fade.tween_callback(label.queue_free)
 "
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vikta"]

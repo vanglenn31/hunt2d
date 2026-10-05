@@ -1,0 +1,67 @@
+[gd_scene format=3 uid="uid://fb1v28qmh3w6"]
+
+[ext_resource type="Script" uid="uid://bacbfvg81eoqd" path="res://scene/wasp.gd" id="1_067wl"]
+[ext_resource type="Texture2D" uid="uid://ehv12dux8hod" path="res://Entities/PixelWasps_Free_Carysaurus/Wasp-Yellow-Walk.png" id="2_227t0"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fk3cu"]
+atlas = ExtResource("2_227t0")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qxlj4"]
+atlas = ExtResource("2_227t0")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jo4av"]
+atlas = ExtResource("2_227t0")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jxvlp"]
+atlas = ExtResource("2_227t0")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3lq1v"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fk3cu")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qxlj4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jo4av")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jxvlp")
+}],
+"loop": 1,
+"name": &"Flying",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ga2fa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_roc0t"]
+size = Vector2(45.5, 34)
+
+[node name="Wasp" type="CharacterBody2D" unique_id=542715117]
+script = ExtResource("1_067wl")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1819684277]
+position = Vector2(260, -14)
+scale = Vector2(1.4687501, 1.40625)
+sprite_frames = SubResource("SpriteFrames_3lq1v")
+animation = &"Flying"
+frame_progress = 0.8723606
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1204808929]
+position = Vector2(261, -16)
+shape = SubResource("CapsuleShape2D_ga2fa")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=870563676]
+position = Vector2(260, -14)
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=567917638]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_roc0t")

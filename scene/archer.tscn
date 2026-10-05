@@ -344,7 +344,7 @@ position = Vector2(5, -6)
 shape = SubResource("CircleShape2D_vikta")
 
 [node name="Muzzle" type="Marker2D" parent="." unique_id=2053585741]
-position = Vector2(29.916661, -17.031248)
+position = Vector2(29.91666, -17.031248)
 gizmo_extents = 33.3
 
 [node name="UpperPivot" type="Node2D" parent="." unique_id=1898465060]
