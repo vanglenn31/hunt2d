@@ -5,6 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://dybhy32g40lyc" path="res://asset/tilemaps/tileset.png" id="3_lbvpa"]
 [ext_resource type="PackedScene" uid="uid://bsbvetf6ji613" path="res://scene/archer.tscn" id="4_v2lal"]
 [ext_resource type="Texture2D" uid="uid://bad3hx27wwl55" path="res://asset/bg/360_F_886004017_0wK4DSw929wQq3a2lfqocuO4bqqVfTPv.jpg" id="5_iqr5p"]
+[ext_resource type="PackedScene" uid="uid://bo0bu6epnr7ka" path="res://scene/bat.tscn" id="6_lbvpa"]
+[ext_resource type="Script" uid="uid://b2ykb5ciuvx1r" path="res://scene/wasp_spawner.gd" id="7_v2lal"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_rxggb"]
 texture = ExtResource("1_hkxy7")
@@ -632,8 +634,8 @@ layer = -1
 
 [node name="TextureRect" type="TextureRect" parent="background" unique_id=1150432416]
 anchors_preset = -1
-anchor_left = 2.8726866
-anchor_top = 0.90123457
+anchor_left = 1.0000008
+anchor_top = -0.013888889
 anchor_right = 1.0000008
 anchor_bottom = -0.013888889
 offset_left = -4914.335
@@ -645,3 +647,11 @@ grow_vertical = 2
 texture = ExtResource("5_iqr5p")
 expand_mode = 3
 metadata/_edit_use_anchors_ = true
+
+[node name="Bat" parent="." unique_id=542715117 instance=ExtResource("6_lbvpa")]
+
+[node name="BirdSpawner" type="Node2D" parent="." unique_id=1547058441]
+script = ExtResource("7_v2lal")
+wasp_scene = ExtResource("6_lbvpa")
+max_wasps = 5
+spread = Vector2(300, 80)

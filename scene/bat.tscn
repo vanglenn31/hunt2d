@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://bo0bu6epnr7ka"]
+
+[ext_resource type="Script" uid="uid://bacbfvg81eoqd" path="res://scene/wasp.gd" id="1_0h2px"]
+[ext_resource type="Texture2D" uid="uid://ovhkfkagtpgi" path="res://Entities/Bat/Spritesheets/Blue_Flying.png" id="2_0h2px"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_i0pxt"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7d6tp"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nut43"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rqttj"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l7qwp"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_t87gt"]
+atlas = ExtResource("2_0h2px")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_3lq1v"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_i0pxt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7d6tp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nut43")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rqttj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l7qwp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_t87gt")
+}],
+"loop": 1,
+"name": &"BatFlying",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ga2fa"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_roc0t"]
+size = Vector2(45.5, 34)
+
+[node name="Bat" type="CharacterBody2D" unique_id=542715117]
+script = ExtResource("1_0h2px")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1819684277]
+position = Vector2(260.5, -16.5)
+scale = Vector2(0.93749994, 1.03125)
+sprite_frames = SubResource("SpriteFrames_3lq1v")
+animation = &"BatFlying"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1204808929]
+position = Vector2(261, -16)
+shape = SubResource("CapsuleShape2D_ga2fa")
+
+[node name="Hitbox" type="Area2D" parent="." unique_id=870563676]
+position = Vector2(260, -14)
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox" unique_id=567917638]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_roc0t")

@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://bolre58g1pvw" path="res://asset/tilemaps/nature-paltformer-tileset-16x16.png" id="2_1lii5"]
 [ext_resource type="Texture2D" uid="uid://dknemcnnqru4h" path="res://asset/bg/00f33a6b-4c20-4d32-9f00-7996c9c7ddc7.jpg" id="3_1lii5"]
 [ext_resource type="PackedScene" uid="uid://bsbvetf6ji613" path="res://scene/archer.tscn" id="3_p7qo3"]
+[ext_resource type="Script" uid="uid://b2ykb5ciuvx1r" path="res://scene/wasp_spawner.gd" id="5_rxd5p"]
+[ext_resource type="PackedScene" uid="uid://cq6u0fmsif3dt" path="res://scene/bird.tscn" id="5_y1807"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_1lii5"]
 texture = ExtResource("1_vikta")
@@ -537,3 +539,11 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_1lii5")
 expand_mode = 3
+
+[node name="Bird" parent="." unique_id=542715117 instance=ExtResource("5_y1807")]
+
+[node name="BirdSpawner" type="Node2D" parent="." unique_id=1247656036]
+script = ExtResource("5_rxd5p")
+wasp_scene = ExtResource("5_y1807")
+max_wasps = 5
+spread = Vector2(300, 80)
