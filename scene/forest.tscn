@@ -1,0 +1,231 @@
+[gd_scene format=3 uid="uid://vb4b5t4l8dwt"]
+
+[ext_resource type="PackedScene" uid="uid://37c4671sgle0" path="res://scene/primordial.tscn" id="1_gbfvw"]
+[ext_resource type="PackedScene" uid="uid://bsbvetf6ji613" path="res://scene/archer.tscn" id="2_wqnte"]
+[ext_resource type="Texture2D" uid="uid://dknemcnnqru4h" path="res://asset/bg/00f33a6b-4c20-4d32-9f00-7996c9c7ddc7.jpg" id="3_v5bin"]
+
+[sub_resource type="GDScript" id="GDScript_e3l50"]
+script/source = "extends CharacterBody2D
+
+const SPEED := 200.0
+const RUN_SPEED := 350.0
+const ACCELERATION := 1200.0
+const DECELERATION := 1500.0
+const JUMP_VELOCITY := -250.0
+
+# --- Launcher tuning ---
+const MAX_PULL := 150.0   # max drag distance (pixels)
+const MIN_PULL := 15.0    # shorter drags cancel the shot
+const POWER := 6.0        # launch speed (px/s) per pixel of pull
+const ARROW_MASS := 0.5   # must match Mass in projectile.tscn
+
+@export var projectile_scene: PackedScene = preload(\"res://scene/projectile.tscn\")
+@export var shoot_frame := 4   # frame of the attack animation (0-7) that releases the arrow
+
+@onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
+@onready var muzzle: Marker2D = $Muzzle
+
+var attacking := false
+var aiming := false
+var shot_fired := false
+var launch_velocity := Vector2.ZERO
+var pending_velocity := Vector2.ZERO
+var gravity: float = ProjectSettings.get_setting(\"physics/2d/default_gravity\")
+
+
+func _ready() -> void:
+	animated_sprite.sprite_frames.set_animation_loop(\"attack\", false)
+	animated_sprite.animation_finished.connect(_on_attack_finished)
+	animated_sprite.frame_changed.connect(_on_frame_changed)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed and not attacking:
+			aiming = true
+			launch_velocity = Vector2.ZERO
+		elif not event.pressed and aiming:
+			aiming = false
+			queue_redraw()
+			if launch_velocity.length() >= MIN_PULL * POWER:
+				start_attack()
+
+
+func _physics_process(delta: float) -> void:
+	if not is_on_floor():
+		velocity += get_gravity() * delta
+
+	# AIMING: stand still, update the preview
+	if aiming:
+		update_aim()
+		animated_sprite.play(\"idle\")
+		velocity.x = move_toward(velocity.x, 0, DECELERATION * delta)
+		move_and_slide()
+		return
+
+	# ATTACKING: let the animation play
+	if attacking:
+		velocity.x = move_toward(velocity.x, 0, DECELERATION * delta)
+		move_and_slide()
+		return
+
+	# JUMP
+	if Input.is_action_just_pressed(\"ui_accept\") and is_on_floor():
+		velocity.y = JUMP_VELOCITY
+
+	# MOVEMENT
+	var direction := Input.get_axis(\"walk_left\", \"walk_right\")
+	var running := Input.is_key_pressed(KEY_SHIFT)
+
+	if direction != 0.0:
+		var target_speed := RUN_SPEED if running else SPEED
+		velocity.x = move_toward(velocity.x, direction * target_speed, ACCELERATION * delta)
+		animated_sprite.play(\"run\" if running else \"walk\")
+		animated_sprite.flip_h = direction < 0.0
+		muzzle.position.x = absf(muzzle.position.x) * (-1.0 if direction < 0.0 else 1.0)
+	else:
+		velocity.x = move_toward(velocity.x, 0, DECELERATION * delta)
+		if absf(velocity.x) < 10.0:
+			animated_sprite.play(\"idle\")
+
+	move_and_slide()
+
+
+# ---------- AIMING ----------
+
+func update_aim() -> void:
+	var mouse := get_global_mouse_position()
+
+	# Face the direction we will shoot (opposite to the drag)
+	var facing := 1.0 if (global_position.x - mouse.x) >= 0.0 else -1.0
+	animated_sprite.flip_h = facing < 0.0
+	muzzle.position.x = absf(muzzle.position.x) * facing
+
+	# Slingshot: launch goes opposite to the drag
+	var pull := (muzzle.global_position - mouse).limit_length(MAX_PULL)
+	launch_velocity = pull * POWER
+	queue_redraw()
+
+
+func _draw() -> void:
+	if not aiming:
+		return
+
+	var anchor := to_local(muzzle.global_position)
+	var mouse := to_local(get_global_mouse_position())
+	var g := Vector2(0, gravity)
+
+	# Rubber band
+	var pulled := anchor - (anchor - mouse).limit_length(MAX_PULL)
+	draw_line(anchor, pulled, Color.WHITE, 2.0)
+
+	# Dotted trajectory: p = p0 + v*t + 0.5*g*t^2
+	var steps := 30
+	for i in range(1, steps + 1):
+		var t := i * 0.06
+		var p := anchor + launch_velocity * t + 0.5 * g * t * t
+		var alpha := 1.0 - float(i) / steps
+		draw_circle(p, 2.5, Color(1.0, 0.5, 0.0, 1.0))
+
+	# Horizontal reference line
+	var side := 1.0 if launch_velocity.x >= 0.0 else -1.0
+	draw_line(anchor, anchor + Vector2(60 * side, 0), Color(1, 1, 1, 0.4), 1.0)
+
+	# Physics values
+	var speed := launch_velocity.length()
+	var angle_deg := rad_to_deg(atan2(-launch_velocity.y, absf(launch_velocity.x)))
+	var impulse := speed * ARROW_MASS        # J = m * v
+	var vy := -launch_velocity.y
+	var max_height := (vy * vy) / (2.0 * gravity) if vy > 0.0 else 0.0
+	var range_px := absf(speed * speed * sin(2.0 * deg_to_rad(angle_deg)) / gravity)
+
+	var lines := [
+		\"Angle: %.1f°\" % angle_deg,
+		\"Speed: %.0f px/s\" % speed,
+		\"Force (impulse): %.0f N·s\" % impulse,
+		\"Max height: %.0f px\" % max_height,
+		\"Range: %.0f px\" % range_px,
+	]
+	var font := ThemeDB.fallback_font
+	var pos := anchor + Vector2(-60, -90 - lines.size() * 18)
+	for i in lines.size():
+		draw_string(font, pos + Vector2(0, i * 18), lines[i],
+			HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color.WHITE)
+
+
+# ---------- ATTACK + SHOOT ----------
+
+func start_attack() -> void:
+	attacking = true
+	shot_fired = false
+	pending_velocity = launch_velocity
+	animated_sprite.play(\"attack\")
+
+
+func _on_frame_changed() -> void:
+	if animated_sprite.animation == \"attack\" \\
+	and animated_sprite.frame == shoot_frame \\
+	and not shot_fired:
+		shot_fired = true
+		shoot()
+
+
+func shoot() -> void:
+	if projectile_scene == null:
+		push_warning(\"Projectile Scene is empty on the archer!\")
+		return
+	var projectile: RigidBody2D = projectile_scene.instantiate()
+	projectile.global_position = muzzle.global_position
+	get_tree().current_scene.add_child(projectile)
+	projectile.add_collision_exception_with(self)
+	projectile.apply_impulse(pending_velocity * projectile.mass)
+
+
+func _on_attack_finished() -> void:
+	if animated_sprite.animation == \"attack\":
+		attacking = false
+"
+
+[sub_resource type="GDScript" id="GDScript_fk3cu"]
+script/source = "extends Camera2D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
+[node name="forest" type="Node2D" unique_id=203144488]
+
+[node name="game" parent="." unique_id=2131199508 instance=ExtResource("1_gbfvw")]
+
+[node name="CharacterBody2D2" parent="game" unique_id=1441517839 instance=ExtResource("2_wqnte")]
+position = Vector2(13, 146)
+script = SubResource("GDScript_e3l50")
+
+[node name="Camera2D" type="Camera2D" parent="game/CharacterBody2D2" unique_id=256836660]
+position = Vector2(-16, -143)
+zoom = Vector2(1.4, 1.4)
+script = SubResource("GDScript_fk3cu")
+
+[node name="background2" type="CanvasLayer" parent="game" unique_id=699354924]
+layer = -1
+
+[node name="TextureRect" type="TextureRect" parent="game/background2" unique_id=1220266903]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -2926.0
+offset_top = -1051.0
+offset_right = 2950.0
+offset_bottom = 1009.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_v5bin")
+expand_mode = 3
+metadata/_edit_use_anchors_ = true
