@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://37c4671sgle0"]
 
 [ext_resource type="Texture2D" uid="uid://b7jbnr6x78ks0" path="res://asset/sprites/world_tileset.png" id="1_vikta"]
+[ext_resource type="Script" uid="uid://datccx1r763fc" path="res://scene/level.gd" id="1_y1807"]
 [ext_resource type="Texture2D" uid="uid://bolre58g1pvw" path="res://asset/tilemaps/nature-paltformer-tileset-16x16.png" id="2_1lii5"]
 [ext_resource type="Texture2D" uid="uid://dknemcnnqru4h" path="res://asset/bg/00f33a6b-4c20-4d32-9f00-7996c9c7ddc7.jpg" id="3_1lii5"]
 [ext_resource type="PackedScene" uid="uid://bsbvetf6ji613" path="res://scene/archer.tscn" id="3_p7qo3"]
@@ -509,6 +510,7 @@ func _process(delta: float) -> void:
 "
 
 [node name="game2" type="Node2D" unique_id=2131199508]
+script = ExtResource("1_y1807")
 
 [node name="TileMap" type="TileMap" parent="." unique_id=2003138559]
 tile_set = SubResource("TileSet_1lii5")
@@ -531,10 +533,10 @@ layer = -1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -2926.0
-offset_top = -1051.0
-offset_right = 2950.0
-offset_bottom = 1009.0
+offset_left = -1259.0
+offset_top = -340.0
+offset_right = 88.24805
+offset_bottom = -25.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_1lii5")
@@ -547,3 +549,9 @@ script = ExtResource("5_rxd5p")
 wasp_scene = ExtResource("5_y1807")
 max_wasps = 5
 spread = Vector2(300, 80)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1509539632]
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=379558374]
+offset_right = 40.0
+offset_bottom = 23.0

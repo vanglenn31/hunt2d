@@ -15,9 +15,13 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Hunt2D"
-run/main_scene="uid://37c4671sgle0"
+run/main_scene="res://scene/start_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Game="*uid://gqpcg7ur4myh"
 
 [input]
 

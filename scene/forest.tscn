@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://vb4b5t4l8dwt"]
 
+[ext_resource type="Script" uid="uid://datccx1r763fc" path="res://scene/level.gd" id="1_fk3cu"]
 [ext_resource type="Texture2D" uid="uid://b7jbnr6x78ks0" path="res://asset/sprites/world_tileset.png" id="1_wqnte"]
 [ext_resource type="Texture2D" uid="uid://bolre58g1pvw" path="res://asset/tilemaps/nature-paltformer-tileset-16x16.png" id="2_v5bin"]
 [ext_resource type="PackedScene" uid="uid://bsbvetf6ji613" path="res://scene/archer.tscn" id="2_wqnte"]
@@ -537,7 +538,22 @@ func _process(delta: float) -> void:
 	pass
 "
 
+[sub_resource type="GDScript" id="GDScript_qxlj4"]
+script/source = "extends Label
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
 [node name="game" type="Node2D" unique_id=2131199508]
+script = ExtResource("1_fk3cu")
 
 [node name="TileMap" type="TileMap" parent="." unique_id=2003138559]
 tile_set = SubResource("TileSet_1lii5")
@@ -560,10 +576,10 @@ layer = -1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -720.0
-offset_top = -796.0
-offset_right = 384.0
-offset_bottom = -64.0
+offset_left = -895.0
+offset_top = -511.0
+offset_right = 7.0
+offset_bottom = 242.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_wqnte")
@@ -576,3 +592,10 @@ script = ExtResource("6_fk3cu")
 wasp_scene = ExtResource("5_e3l50")
 max_wasps = 5
 spread = Vector2(500, 65)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1924243104]
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=171078709]
+offset_right = 40.0
+offset_bottom = 23.0
+script = SubResource("GDScript_qxlj4")

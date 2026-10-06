@@ -14,9 +14,22 @@ var turn_timer := 0.0
 
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var hitbox: Area2D = $Hitbox
+@onready var body_shape: CollisionShape2D = $CollisionShape2D
+
+
+func _recenter() -> void:
+	# The sprite/collision/hitbox in the scenes sit ~260px away from the node's origin,
+	# which made spawns land far to the right. Shift them back onto the origin.
+	var off := body_shape.position
+	if off == Vector2.ZERO:
+		return
+	sprite.position -= off
+	hitbox.position -= off
+	body_shape.position = Vector2.ZERO
 
 
 func _ready() -> void:
+	_recenter()
 	add_to_group("enemy")                                # so enemies don't hurt each other
 	motion_mode = CharacterBody2D.MOTION_MODE_FLOATING   # flyer: no floor/ceiling logic
 	start_x = global_position.x
@@ -68,6 +81,7 @@ func take_damage(_amount: int = 1) -> void:
 	if dying:
 		return
 	dying = true
+	Game.enemy_hit.emit()
 	health = 0
 	print("Enemy killed: ", name)
 	set_physics_process(false)
